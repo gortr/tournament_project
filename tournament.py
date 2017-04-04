@@ -10,16 +10,6 @@ def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
 
-#def refreshViews():
-    """Refreshes materialized views derived from matches"""
-#    DB = connect()
-#    c = DB.cursor()
-#    c.execute('REFRESH VIEW view_wins;')
-#    c.execute('REFRESH VIEW view_losses;')
-#    c.execute('REFRESH VIEW view_matches;')
-#    DB.commit()
-#    DB.close()
-
 def deleteMatches():
     """Remove all the match records from the database."""
     DB = connect()
@@ -27,7 +17,6 @@ def deleteMatches():
     c.execute('DELETE FROM matches WHERE match_id IS NOT NULL;')
     DB.commit()
     DB.close()
-#    refreshViews()
 
 def deletePlayers():
     """Remove all the player records from the database."""
@@ -36,7 +25,6 @@ def deletePlayers():
     c.execute('DELETE FROM players WHERE player_id IS NOT NULL;')
     DB.commit()
     DB.close()
-#    refreshViews()
 
 def countPlayers():
     """Returns the number of players currently registered."""
@@ -61,7 +49,6 @@ def registerPlayer(name):
     c.execute('INSERT INTO players (name) VALUES (%s)', (name,))
     DB.commit()
     DB.close()
-#    refreshViews()
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
@@ -76,7 +63,6 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-#    refreshViews()
     DB = connect()
     c = DB.cursor()
     query = """
@@ -104,7 +90,6 @@ def reportMatch(winner, loser):
     c.execute('INSERT INTO matches (winner, loser) values (%s, %s);', (int(winner), int(loser)))
     DB.commit()
     DB.close()
-#    refreshViews()
 
 def breakIntoGroups(list, size = 2):
     size = max(1, size)
