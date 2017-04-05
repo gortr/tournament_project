@@ -6,33 +6,44 @@
 import psycopg2
 
 
-def connect():
+def connect(database_name="tournament"):
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+    try:
+        db = psycopg2.connect("dbname={}".format(database_name))
+        cursor = db.cursor()
+        return db, cursor
+    except:
+        print("<Error: Unable to communicate with database.>")
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    DB = connect()
-    c = DB.cursor()
-    c.execute('DELETE FROM matches WHERE match_id IS NOT NULL;')
-    DB.commit()
-    DB.close()
+    db, cursor = connect()
+
+    query = "DELETE FROM matches WHERE match_id IS NOT NULL;"
+    c.execute(query)
+    
+    db.commit()
+    db.close()
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    DB = connect()
-    c = DB.cursor()
-    c.execute('DELETE FROM players WHERE player_id IS NOT NULL;')
-    DB.commit()
-    DB.close()
+    db, cursor = connect()
+
+    query = "DELETE FROM players WHERE player_id IS NOT NULL;"
+    c.execute(query)
+    
+    db.commit()
+    db.close()
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    DB = connect()
-    c = DB.cursor()
-    c.execute('SELECT count(player_id) AS num FROM players;')
+    db, cursor = connect()
+
+    query = "SELECT count(player_id) AS num FROM players;"
+    c.execute(query)
     count = int(c.fetchone()[0])
-    DB.close()
+    
+    db.close()
     return count
 
 def registerPlayer(name):
@@ -44,11 +55,14 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-    DB = connect()
-    c = DB.cursor()
-    c.execute('INSERT INTO players (name) VALUES (%s)', (name,))
-    DB.commit()
-    DB.close()
+    db, cursor = connect()
+
+    query = "INSERT INTO players (name) VALUES (%s);"
+    param = (name,)
+    c.execute(query, param)
+    
+    db.commit()
+    db.close()
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
@@ -63,19 +77,13 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    DB = connect()
-    c = DB.cursor()
-    query = """
-        SELECT players.player_id, players.name, view_wins.wins, view_matches.matches
-        FROM players
-        LEFT JOIN view_wins ON players.player_id = view_wins.player
-        LEFT JOIN view_matches ON players.player_id = view_matches.player
-        GROUP BY players.player_id, players.name, view_wins.wins, view_matches.matches
-        ORDER BY view_wins.wins DESC;
-    """
+    db, cursor = connect()
+
+    query = "SELECT * FROM view_standings"
     c.execute(query)
     standings = c.fetchall()
-    DB.close()
+    
+    db.close()
     return standings
 
 def reportMatch(winner, loser):
@@ -85,11 +93,14 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    DB = connect()
-    c = DB.cursor()
-    c.execute('INSERT INTO matches (winner, loser) values (%s, %s);', (int(winner), int(loser)))
-    DB.commit()
-    DB.close()
+    db, cursor = connect()
+
+    query = "INSERT INTO matches (winner, loser) values (%s, %s);"
+    param = (int(winner), int(loser))
+    c.execute(query, param)
+    
+    db.commit()
+    db.close()
 
 def breakIntoGroups(list, size = 2):
     size = max(1, size)
